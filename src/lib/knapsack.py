@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, replace
 
 
-@dataclass
+@dataclass(frozen=True)
 class KnapsackItem:
     weight: float
     value: float
@@ -26,7 +26,7 @@ def knapsack01(
     max_weight: int,
 ) -> list[KnapsackItem]:
     """
-    Based on zyBooks' 1.10: Heuristics, exemplifies
+    Based on C949 zyBooks' 1.10: Heuristics, exemplifies
     an algorithm using a heuristic that sacrifices optimality for speed.
 
     In this case, this algorithm just grabs as many valuable items as it can,
@@ -54,6 +54,13 @@ def fractional_knapsack(
     available_items: list[KnapsackItem],
     max_weight: int | float,
 ) -> list[KnapsackItem]:
+    """
+    This function differs from ``knapsack01`` in two important ways:
+        - items are sorted by their value to weight ratio
+        - items can be split to perfectly fit into the knapsack (items can be fractional)
+
+    Based on C949 zyBooks' 1.11: Greedy algorithms
+    """
     knapsack = []
     sorted_available_items = sorted(
         available_items,
