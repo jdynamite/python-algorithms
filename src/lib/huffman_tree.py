@@ -7,6 +7,17 @@ NULL_CHAR = '\0'
 
 
 @dataclass
+class CompressionResult:
+    input_string: str
+    output_value: ConstBitStream
+    tree: 'HuffmanNode'
+    codes: dict[str, str]
+    frequency_table: dict[str, int]
+
+    # TODO :: Impl display method
+
+
+@dataclass
 class HuffmanNode:
     left: Optional['HuffmanNode'] = field(default=None)
     right: Optional['HuffmanNode'] = field(default=None)
@@ -67,7 +78,10 @@ def get_huffman_codes(node, prefix, output):
         output[node.character] = prefix
 
 
-def build_huffman_tree(input_string: str) -> 'HuffmanNode':
+def build_huffman_tree(
+    input_string: str,
+) -> tuple['HuffmanNode', dict[str, int]]:
+    """Returns the root node and the frequency table used to build the tree."""
     table = build_frequency_table(input_string)
     nodes = PriorityQueue()
 
@@ -84,10 +98,10 @@ def build_huffman_tree(input_string: str) -> 'HuffmanNode':
         intermediate_node = HuffmanNode.create_internal(left, right)
         nodes.put(intermediate_node)
 
-    return nodes.get()
+    return nodes.get(), table
 
 
-def compress_string(input_string: str) -> tuple[ConstBitStream, dict[str, str]]:
+def compress_string(input_string: str, verbose: bool = False) -> CompressionResult:
     """
     Compress ``input_string`` into a binary bit-string (a sequence of ones and zeroes,)
     and return that new string alongside a mapping of binary 'characters' to their
@@ -113,9 +127,9 @@ def compress_string(input_string: str) -> tuple[ConstBitStream, dict[str, str]]:
             }
     """
     if not input_string:
-        return ConstBitStream(), dict()
+        raise ValueError(f'Cannot compress an empty string')
 
-    root = build_huffman_tree(input_string)
+    root, table = build_huffman_tree(input_string)
     codes = dict()
     get_huffman_codes(root, '', codes)
 
@@ -123,7 +137,13 @@ def compress_string(input_string: str) -> tuple[ConstBitStream, dict[str, str]]:
     # and map them to letters.
     compressed_value = [int(v) for v in ''.join(map(lambda c: codes[c], input_string))]
     bitstream = ConstBitStream(compressed_value)
-    return bitstream, {v:k for k,v in codes.items()}
+    return CompressionResult(
+        input_string=input_string,
+        output_value=bitstream,
+        tree=root,
+        codes=codes,
+        frequency_table=table
+    )
 
 
 def decompress_string(input_stream: ConstBitStream, codes: dict[str, str]) -> str:

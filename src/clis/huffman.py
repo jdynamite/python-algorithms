@@ -15,29 +15,7 @@ from lib.huffman_tree import (
     get_huffman_codes,
 )
 
-
-@click.group
-def main():
-    pass
-
-@main.command('hello')
-def hello():
-    print("Hello from python-algorithms!")
-
-
-@main.command('count')
-@click.argument('string', type=click.STRING)
-def count(string: str):
-    from pprint import pprint
-    pprint(build_frequency_table(string))
-
-
-@main.command('huffman-tree')
-@click.argument('string', type=click.STRING)
-def huffman_tree(string: str):
-    root = build_huffman_tree(string)
-    codes = dict()
-    get_huffman_codes(root, "", codes)
+def print_huffman_tree(root: 'HuffmanNode', codes: dict[str, str]):
     rich_tree = tree.Tree(text.Text(f'({root.frequency})'))
 
     def _add_children_to_tree(n: HuffmanNode, tree: tree.Tree, include_self: bool = True):
@@ -60,20 +38,53 @@ def huffman_tree(string: str):
     rich.print(rich_tree)
 
 
+@click.group
+def main():
+    pass
+
+@main.command('hello')
+def hello():
+    print("Hello from python-algorithms!")
+
+
+@main.command('count')
+@click.argument('string', type=click.STRING)
+def count(string: str):
+    from pprint import pprint
+    pprint(build_frequency_table(string))
+
+
+@main.command('huffman-tree')
+@click.argument('string', type=click.STRING)
+def huffman_tree(string: str):
+    root, _ = build_huffman_tree(string)
+    codes = dict()
+    get_huffman_codes(root, "", codes)
+    print_huffman_tree(root, codes)
+
+
 @main.command('huffman-compress')
 @click.argument('string', type=click.STRING)
 @click.argument('output', type=click.Path(path_type=Path))
 def huffman_compress(string: str, output: Path):
-    new_string, codes = compress_string(string)
-    output.write_text(json.dumps(codes, indent=4))
-    print(f'compressed into: {new_string}')
-    print(f'codes output to: {output}')
+    result = compress_string(string)
+    reversed_codes = {v: k for k,v in result.codes.items()}
+    output.write_text(json.dumps(reversed_codes, indent=4))
+
+    click.secho(f'Frequency table:', fg='cyan')
+    rich.print(result.frequency_table)
+
+    click.secho(f'Compressed string into: {result.output_value}', fg='cyan')
+    click.secho(f'Codes output to: {output}', fg='cyan')
+
+    click.secho(f'Tree:', fg='cyan')
+    print_huffman_tree(result.tree, result.codes)
 
 
 @main.command('huffman-decompress')
 @click.argument('string', type=click.STRING)
 @click.argument('codes', type=click.Path(path_type=Path))
-def huffman_decompress(string: str, codes):
+def huffman_decompress(string: str, codes: Path):
     stream = ConstBitStream(string)
     print(f'original string is: {decompress_string(stream, json.loads(codes.read_text()))}')
 
