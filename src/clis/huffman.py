@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from bitstring import ConstBitStream
 import click
 import rich
 from rich import tree, text
@@ -73,7 +74,8 @@ def huffman_compress(string: str, output: Path):
 @click.argument('string', type=click.STRING)
 @click.argument('codes', type=click.Path(path_type=Path))
 def huffman_decompress(string: str, codes):
-    print(f'original string is: {decompress_string(string, json.loads(codes.read_text()))}')
+    stream = ConstBitStream(string)
+    print(f'original string is: {decompress_string(stream, json.loads(codes.read_text()))}')
 
 
 if __name__ == "__main__":

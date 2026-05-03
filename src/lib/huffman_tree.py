@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from queue import PriorityQueue
-import queue
 from typing import Optional
+from bitstring import ConstBitStream
 
 NULL_CHAR = '\0'
 
@@ -87,18 +87,18 @@ def build_huffman_tree(input_string: str) -> 'HuffmanNode':
     return nodes.get()
 
 
-def compress_string(input_string: str) -> tuple[str, dict[str, str]]:
+def compress_string(input_string: str) -> tuple[ConstBitStream, dict[str, str]]:
     """
-    Compress ``input_string`` into a binary string (a sequence of ones and zeroes,)
+    Compress ``input_string`` into a binary bit-string (a sequence of ones and zeroes,)
     and return that new string alongside a mapping of binary 'characters' to their
-    original value.
+    original value. Note that the string will be in hex, but the underlying data is there!
 
     Each characters' binary string is formed by traversing a binary tree from the root
     node. A left move yields a 0, a right move a 1.
 
     For example:
         > compress_string('Sponge Bob')
-        > string => 01011111100010000111001110110101
+        > string => 0x5f8873b5
         > map    =>
             {
               "000": "g",
@@ -113,7 +113,7 @@ def compress_string(input_string: str) -> tuple[str, dict[str, str]]:
             }
     """
     if not input_string:
-        return input_string, dict()
+        return ConstBitStream(), dict()
 
     root = build_huffman_tree(input_string)
     codes = dict()
@@ -121,20 +121,17 @@ def compress_string(input_string: str) -> tuple[str, dict[str, str]]:
 
     # On the way out, revert the map, so we  can scan chars left to right,
     # and map them to letters.
-    return ''.join(map(lambda c: codes[c], input_string)), {v:k for k,v in codes.items()}
+    compressed_value = [int(v) for v in ''.join(map(lambda c: codes[c], input_string))]
+    bitstream = ConstBitStream(compressed_value)
+    return bitstream, {v:k for k,v in codes.items()}
 
 
-def decompress_string(input_string: str, codes: dict[str, str]) -> str:
-    input_queue = queue.Queue()
-
-    for c in input_string:
-        input_queue.put(c)
-
+def decompress_string(input_stream: ConstBitStream, codes: dict[str, str]) -> str:
     k = ''
     decompressed_string = ''
 
-    while input_queue.qsize() > 0:
-        k += input_queue.get()
+    for c in input_stream:
+        k += '1' if c else '0'
         if k in codes:
             decompressed_string += codes[k]
             k = ''

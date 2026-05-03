@@ -6,8 +6,17 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "click",
+    "rich",
+    # `bitstream` requires pip, so it's harder to use with uv out of the box
+    "bitstring"
+]
+
+[dependency-groups]
+dev = [
     "ipython",
-    "rich"
+]
+test = [
+    "pytest",
 ]
 
 [project.scripts]
