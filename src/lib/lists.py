@@ -63,14 +63,12 @@ class LinkedList(Generic[T]):
     def traverse(
         self
     ) -> Generator[tuple[LinkedNode[T], LinkedNode[T] | None], None, None]:
-        try:
-            prev, next = (self.head, self.head.next)
-        except AttributeError:
+        if self.is_empty():
             raise ValueError(f'List is empty!') from None
-
-        while next != None:
-            yield prev, next
-            prev, next = (next, next.next)
+        prev = self.head
+        while prev != None:
+            yield prev, prev.next 
+            prev = prev.next
 
     def get_length(self) -> int:
         return self.length
@@ -126,11 +124,49 @@ class LinkedList(Generic[T]):
         self.prepend_node(node=node)
         self.length += 1
 
+    def remove_node_after(self, node: LinkedNode[T] | None):
+        if self.head is None: # == self.is_empty():
+            raise RuntimeError('The list is empty.')
+        # if node is None, we're remove the current head. 
+        # Special case: remove head
+        if node is None:
+            self.head = self.head.next
+            if self.head is None:
+                self.tail = None
+        elif node.next != None:
+            n = node.next.next
+            node.next = n
+            if n is None:
+                self.tail = node
+
+    def insert_after(self, data: T, new_data: T) -> bool:
+        if current_node := self.search(data):
+            new_node = LinkedNode(data=new_data, next=None)
+            self.insert_node_after(current_node, new_node)
+            return True
+        return False
+
+    def search(self, data: T) -> LinkedNode[T] | None:
+        for p, _ in self.traverse():
+            if p.data == data:
+                return p
+
+    def print(self):
+        if self.is_empty():
+            chain = ''
+        elif self.get_length() == 1:
+            chain = f'{self.head.data}->None'
+        else:
+            nodes: list[LinkedNode[T]] = [p.data for p, _ in self.traverse()] 
+            chain = '->'.join(map(str, nodes))
+
+        print(f'LinkedList([{chain}])')
+
     def insert_node_after(self, node: LinkedNode[T] | None, new_node: LinkedNode[T]):
         if self.head is None or node == self.tail:
             self.append_node(new_node)
-        else:
-            new_node = node.next
+        elif node:
+            new_node.next = node.next
             node.next = new_node
             self.length += 1
 
