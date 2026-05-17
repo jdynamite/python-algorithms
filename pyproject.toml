@@ -20,7 +20,9 @@ test = [
 ]
 
 [project.scripts]
-ralgo = "clis.huffman:main"
+huffman = "clis.huffman:main"
+activities = "clis.activities:main"
+lcs = "clis.longest_common_substring:main"
 
 [tool.uv]
 package = true
