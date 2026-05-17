@@ -1,6 +1,9 @@
-from typing import Generator, Generic, Protocol, TypeVar, Optional
-from collections.abc import Hashable
+from __future__ import annotations
+from typing import Generic, Protocol, TypeVar
+from collections.abc import Hashable, Generator
 from dataclasses import dataclass, field
+
+from typing_extensions import override
 
 T = TypeVar('T', bound=Hashable)
 
@@ -18,7 +21,7 @@ class ListADT(Protocol[T]):
     def remove(self, item: T) -> bool:
         ...
 
-    def pop(self) -> Optional[T]:
+    def pop(self) -> T | None:
         ...
 
     def contains(self, item: T) -> bool:
@@ -40,16 +43,17 @@ class ListADT(Protocol[T]):
 @dataclass
 class LinkedNode(Generic[T]):
     data: T
-    next: Optional['LinkedNode']
+    next: LinkedNode[T] | None
 
+    @override
     def __hash__(self) -> int:
         return hash((self.data, self.next))
 
 
 @dataclass
 class LinkedList(Generic[T]):
-    head: Optional['LinkedNode'] = field(init=False, default=None)
-    tail: Optional['LinkedNode'] = field(init=False, default=None)
+    head: LinkedNode[T] | None = field(init=False, default=None)
+    tail: LinkedNode[T] | None = field(init=False, default=None)
     length: int = 0
 
     def __init__(self, *items: T):
@@ -58,7 +62,7 @@ class LinkedList(Generic[T]):
 
     def traverse(
         self
-    ) -> Generator[tuple[LinkedNode, Optional[LinkedNode]], None, None]:
+    ) -> Generator[tuple[LinkedNode[T], LinkedNode[T] | None], None, None]:
         try:
             prev, next = (self.head, self.head.next)
         except AttributeError:
@@ -105,7 +109,7 @@ class LinkedList(Generic[T]):
 
         return removed
 
-    def pop(self) -> Optional[T]:
+    def pop(self) -> T | None:
         # in a singuarly linked list, pop is O(n)
         if self.tail is not None:
             data = self.tail.data
@@ -122,14 +126,22 @@ class LinkedList(Generic[T]):
         self.prepend_node(node=node)
         self.length += 1
 
-    def append_node(self, node: LinkedNode):
+    def insert_node_after(self, node: LinkedNode[T] | None, new_node: LinkedNode[T]):
+        if self.head is None or node == self.tail:
+            self.append_node(new_node)
+        else:
+            new_node = node.next
+            node.next = new_node
+            self.length += 1
+
+    def append_node(self, node: LinkedNode[T]):
         if self.head is None:
             self.head = self.tail = node
         else:
             self.tail.next = node
             self.tail = node
 
-    def prepend_node(self, node: LinkedNode):
+    def prepend_node(self, node: LinkedNode[T]):
         if self.head is None:
             self.head = self.tail = node
         else:
