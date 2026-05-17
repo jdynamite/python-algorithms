@@ -45,11 +45,6 @@ class LinkedNode(Generic[T]):
     def __hash__(self) -> int:
         return hash((self.data, self.next))
 
-    def get_next(self) -> Optional['LinkedNode']:
-        if self.next:
-            return self.next
-        return None
-
 
 @dataclass
 class LinkedList(Generic[T]):
@@ -64,21 +59,14 @@ class LinkedList(Generic[T]):
     def traverse(
         self
     ) -> Generator[tuple[LinkedNode, Optional[LinkedNode]], None, None]:
-        if self.head is not None:
-            head, tail = (self.head, self.tail)
-            prev, next = (head, head.get_next())
+        try:
+            prev, next = (self.head, self.head.next)
+        except AttributeError:
+            raise ValueError(f'List is empty!') from None
 
+        while next != None:
             yield prev, next
-
-            while prev != tail:
-                if next is not None:
-                    prev = next
-                    next = next.get_next()
-                yield prev, next
-
-            return
-
-        raise ValueError(f'List is empty.')
+            prev, next = (next, next.next)
 
     def get_length(self) -> int:
         return self.length
