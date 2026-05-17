@@ -2,26 +2,26 @@ from typing import Generator, Generic, Protocol, TypeVar, Optional
 from collections.abc import Hashable
 from dataclasses import dataclass, field
 
-T_con = TypeVar('T_con', bound=Hashable)
+T = TypeVar('T', bound=Hashable)
 
 
-class ListADT(Protocol[T_con]):
-    def append(self, item: T_con) -> None:
+class ListADT(Protocol[T]):
+    def append(self, item: T) -> None:
         ...
 
-    def prepend(self, item: T_con) -> None:
+    def prepend(self, item: T) -> None:
         ...
 
-    def insert_after(self, item: T_con) -> None:
+    def insert_after(self, item: T) -> None:
         ...
 
-    def remove(self, item: T_con) -> bool:
+    def remove(self, item: T) -> bool:
         ...
 
-    def pop(self) -> Optional[T_con]:
+    def pop(self) -> Optional[T]:
         ...
 
-    def contains(self, item: T_con) -> bool:
+    def contains(self, item: T) -> bool:
         ...
 
     def print(self) -> None:
@@ -38,8 +38,8 @@ class ListADT(Protocol[T_con]):
 
 
 @dataclass
-class LinkedNode(Generic[T_con]):
-    data: T_con
+class LinkedNode(Generic[T]):
+    data: T
     next: Optional['LinkedNode']
 
     def __hash__(self) -> int:
@@ -52,12 +52,12 @@ class LinkedNode(Generic[T_con]):
 
 
 @dataclass
-class LinkedList(Generic[T_con]):
+class LinkedList(Generic[T]):
     head: Optional['LinkedNode'] = field(init=False, default=None)
     tail: Optional['LinkedNode'] = field(init=False, default=None)
     length: int = 0
 
-    def __init__(self, *items: T_con):
+    def __init__(self, *items: T):
         for it in items:
             self.append(it)
 
@@ -86,7 +86,7 @@ class LinkedList(Generic[T_con]):
     def is_empty(self) -> bool:
         return self.get_length() == 0
 
-    def remove(self, item: T_con) -> bool:
+    def remove(self, item: T) -> bool:
         if self.is_empty():
             return False
 
@@ -117,19 +117,19 @@ class LinkedList(Generic[T_con]):
 
         return removed
 
-    def pop(self) -> Optional[T_con]:
+    def pop(self) -> Optional[T]:
         # in a singuarly linked list, pop is O(n)
         if self.tail is not None:
             data = self.tail.data
             if self.remove(self.tail.data):
                 return data
 
-    def append(self, data: T_con) -> None:
+    def append(self, data: T) -> None:
         node = LinkedNode(data=data, next=None)
         self.append_node(node=node)
         self.length += 1
 
-    def prepend(self, data: T_con) -> None:
+    def prepend(self, data: T) -> None:
         node = LinkedNode(data=data, next=None)
         self.prepend_node(node=node)
         self.length += 1
