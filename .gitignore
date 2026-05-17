@@ -1,3 +1,4 @@
 __pycache__
 *.egg-info
 test.json
+uv.lock
