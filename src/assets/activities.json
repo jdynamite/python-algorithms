@@ -1,0 +1,42 @@
+[
+    {
+        "name": "History museum tour",
+        "start_time": 9,
+        "end_time": 10
+    },
+    {
+        "name": "Morning mountain hike",
+        "start_time": 9,
+        "end_time": 12
+    },
+    {
+        "name": "Boat tour",
+        "start_time": 11,
+        "end_time": 14
+    },
+    {
+        "name": "Day mountain hike",
+        "start_time": 13,
+        "end_time": 16
+    },
+    {
+        "name": "Hang gliding",
+        "start_time": 14,
+        "end_time": 16
+    },
+    {
+        "name": "Snorkeling",
+        "start_time": 15,
+        "end_time": 17
+    },
+    {
+        "name": "Fireworks show",
+        "start_time": 20,
+        "end_time": 21
+    },
+    {
+        "name": "Night movie",
+        "start_time": 19,
+        "end_time": 21
+    }
+]
