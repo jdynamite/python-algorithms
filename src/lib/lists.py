@@ -1,11 +1,27 @@
 from __future__ import annotations
-from typing import Generic, Protocol, TypeVar
+from typing import (
+    Generic,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 from collections.abc import Hashable, Generator
 from dataclasses import dataclass, field
 
 from typing_extensions import override
 
-T = TypeVar('T', bound=Hashable)
+
+class Sortable(Protocol):
+    def __lt__(self, other: 'Sortable') -> bool:
+        ...
+
+
+@runtime_checkable
+class SortableHashable(Sortable, Hashable):
+    pass
+
+
+T = TypeVar('T', bound=SortableHashable)
 
 
 class ListADT(Protocol[T]):
@@ -76,7 +92,7 @@ class LinkedList(Generic[T]):
             raise ValueError(f'List is empty!') from None
         prev = self.head
         while prev != None:
-            yield prev, prev.next 
+            yield prev, prev.next
             prev = prev.next
 
     def get_length(self) -> int:
@@ -94,10 +110,10 @@ class LinkedList(Generic[T]):
                 self.remove_node_after(prev)
                 self.length -= 1
                 return True
-            
+
             prev = current
             current = current.next
-        
+
         return False
 
     def pop(self) -> T | None:
@@ -114,9 +130,9 @@ class LinkedList(Generic[T]):
             if current.data == item:
                 return True
             current = current.next
-        
+
         return False
-    
+
     def append(self, data: T) -> None:
         node = LinkedNode(data=data, next=None)
         self.append_node(node=node)
@@ -128,9 +144,9 @@ class LinkedList(Generic[T]):
         self.length += 1
 
     def remove_node_after(self, node: LinkedNode[T] | None):
-        if self.head is None: # == self.is_empty():
+        if self.head is None:  # == self.is_empty():
             raise RuntimeError('The list is empty.')
-        # if node is None, we're remove the current head. 
+        # if node is None, we're remove the current head.
         # Special case: remove head
         if node is None:
             self.head = self.head.next
@@ -161,10 +177,14 @@ class LinkedList(Generic[T]):
             chain = f'{self.head.data}->None'
         else:
             chain = '->'.join(map(str, self.as_list()))
+            nodes: list[LinkedNode[T]] = [p.data for p, _ in self.traverse()]
+            chain = '->'.join(map(str, nodes))
 
         print(f'{self.__class__.__name__}([{chain}])')
 
-    def insert_node_after(self, node: LinkedNode[T] | None, new_node: LinkedNode[T]):
+    def insert_node_after(
+        self, node: LinkedNode[T] | None, new_node: LinkedNode[T]
+    ):
         if self.head is None or node == self.tail:
             self.append_node(new_node)
         elif node:
@@ -186,6 +206,13 @@ class LinkedList(Generic[T]):
             node.next = self.head
             self.head = node
 
+    def find_insertion_position(self, data: T) -> LinkedNode[T] | None:
+        a, b = None, self.head
+        while b is not None and data > b.data:
+            a = b
+            b = b.next
+        return a
+
 
 @dataclass
 class DoubleLinkNode(Generic[T]):
@@ -203,7 +230,7 @@ class DoubleLinkList(Generic[T]):
     def __init__(self, *items: T):
         for it in items:
             self.append(it)
-    
+
     def as_list(self) -> list[T]:
         data: list[T] = []
         current_node = self.head
@@ -219,7 +246,7 @@ class DoubleLinkList(Generic[T]):
 
     def is_empty(self) -> bool:
         return self.get_length() == 0
-    
+
     def append(self, data: T) -> None:
         node = DoubleLinkNode(data)
         self.append_node(node)
@@ -228,7 +255,7 @@ class DoubleLinkList(Generic[T]):
         if self.head is None and self.tail is None:
             self.head = self.tail = node
             self.length = 1
-            return  
+            return
 
         if self.tail is None or self.head is None:
             raise RuntimeError()
@@ -255,3 +282,27 @@ class DoubleLinkList(Generic[T]):
             chain = '->'.join(map(str, self.as_list()))
 
         print(f'{self.__class__.__name__}([{chain}])')
+
+
+def sort_linked_list(linked_list: LinkedList[T]):
+    """Sort a linked list in place. O(n^2)"""
+    if linked_list.head is None:
+        return
+
+    prev = linked_list.head
+    cur = prev.next
+
+    while cur is not None:
+        next = cur.next
+        pos = linked_list.find_insertion_position(cur.data)
+
+        if pos == prev:
+            prev = cur
+        else:
+            linked_list.remove_node_after(prev)
+            if pos is None:
+                linked_list.prepend_node(cur)
+            else:
+                linked_list.insert_node_after(pos, cur)
+
+        cur = next
