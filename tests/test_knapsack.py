@@ -14,7 +14,7 @@ from lib.knapsack import KnapsackItem, fractional_knapsack, knapsack01
         ),
     ]
 )
-def test_knapsack01(items, max_weight, expected_weight, expected_value):
+def test_knapsack01(items: list[KnapsackItem], max_weight: int, expected_weight: int, expected_value: int):
     knapsack = knapsack01(items, max_weight)
     assert sum(map(KnapsackItem.get_weight, knapsack)) == expected_weight
     assert sum(map(KnapsackItem.get_value, knapsack)) == expected_value
@@ -32,7 +32,7 @@ def test_knapsack01(items, max_weight, expected_weight, expected_value):
         ),
     ]
 )
-def test_fractional_knapsack(items, max_weight, expected_weight, expected_value):
+def test_fractional_knapsack(items: list[KnapsackItem], max_weight: float, expected_weight: float, expected_value: int):
     knapsack = fractional_knapsack(items, max_weight)
     assert sum(map(KnapsackItem.get_value, knapsack)) == expected_value
     assert sum(map(KnapsackItem.get_weight, knapsack)) == expected_weight

@@ -60,6 +60,15 @@ class LinkedList(Generic[T]):
         for it in items:
             self.append(it)
 
+    def as_list(self) -> list[T]:
+        data: list[T] = []
+        for n, _ in self.traverse():
+            data.append(n.data)
+        return data
+
+    def __list__(self) -> list[T]:
+        return self.as_list()
+
     def traverse(
         self
     ) -> Generator[tuple[LinkedNode[T], LinkedNode[T] | None], None, None]:
@@ -77,35 +86,19 @@ class LinkedList(Generic[T]):
         return self.get_length() == 0
 
     def remove(self, item: T) -> bool:
-        if self.is_empty():
-            return False
+        prev = None
+        current = self.head
 
-        removed = False
-
-        if self.head.data == item:
-            self.head = self.head.next
-            self.length -= 1
-            removed = True
-        else:
-            for prev, next in self.traverse():
-                if next is None:
-                    return False
-
-                if next.data == item:
-                    self.tail = prev
-                    prev.next = next.next
-                    self.length -= 1
-                    removed = True
-                    break
-
-        if removed:
-            if self.length == 1:
-                n = self.head or self.tail
-                self.head = self.tail = n
-            elif self.is_empty():
-                self.head = self.tail = None
-
-        return removed
+        while current is not None:
+            if current.data == item:
+                self.remove_node_after(prev)
+                self.length -= 1
+                return True
+            
+            prev = current
+            current = current.next
+        
+        return False
 
     def pop(self) -> T | None:
         # in a singuarly linked list, pop is O(n)
@@ -114,6 +107,16 @@ class LinkedList(Generic[T]):
             if self.remove(self.tail.data):
                 return data
 
+    def contains(self, item: T) -> bool:
+        current = self.head
+
+        while current is not None:
+            if current.data == item:
+                return True
+            current = current.next
+        
+        return False
+    
     def append(self, data: T) -> None:
         node = LinkedNode(data=data, next=None)
         self.append_node(node=node)
@@ -157,10 +160,9 @@ class LinkedList(Generic[T]):
         elif self.get_length() == 1:
             chain = f'{self.head.data}->None'
         else:
-            nodes: list[LinkedNode[T]] = [p.data for p, _ in self.traverse()] 
-            chain = '->'.join(map(str, nodes))
+            chain = '->'.join(map(str, self.as_list()))
 
-        print(f'LinkedList([{chain}])')
+        print(f'{self.__class__.__name__}([{chain}])')
 
     def insert_node_after(self, node: LinkedNode[T] | None, new_node: LinkedNode[T]):
         if self.head is None or node == self.tail:
@@ -183,3 +185,73 @@ class LinkedList(Generic[T]):
         else:
             node.next = self.head
             self.head = node
+
+
+@dataclass
+class DoubleLinkNode(Generic[T]):
+    data: T
+    prev: DoubleLinkNode[T] | None = None
+    next: DoubleLinkNode[T] | None = None
+
+
+@dataclass
+class DoubleLinkList(Generic[T]):
+    head: DoubleLinkNode[T] | None = field(init=False)
+    tail: DoubleLinkNode[T] | None = field(init=False)
+    length: int = 0
+
+    def __init__(self, *items: T):
+        for it in items:
+            self.append(it)
+    
+    def as_list(self) -> list[T]:
+        data: list[T] = []
+        current_node = self.head
+        while current_node != None:
+            data.append(current_node.data)
+        return data
+
+    def __list__(self) -> list[T]:
+        return self.as_list()
+
+    def get_length(self) -> int:
+        return self.length
+
+    def is_empty(self) -> bool:
+        return self.get_length() == 0
+    
+    def append(self, data: T) -> None:
+        node = DoubleLinkNode(data)
+        self.append_node(node)
+
+    def append_node(self, node: DoubleLinkNode[T]) -> None:
+        if self.head is None and self.tail is None:
+            self.head = self.tail = node
+            self.length = 1
+            return  
+
+        if self.tail is None or self.head is None:
+            raise RuntimeError()
+
+        self.tail.next = node
+        node.prev = self.tail
+        self.tail = node
+
+        self.length += 1
+
+    def search(self, data: T) -> DoubleLinkNode[T] | None:
+        current_node = self.head
+        while current_node != None:
+            if current_node.data == data:
+                return current_node
+            current_node = current_node.next
+
+    def print(self):
+        if self.is_empty():
+            chain = ''
+        elif self.get_length() == 1:
+            chain = f'{self.head.data}->None'
+        else:
+            chain = '->'.join(map(str, self.as_list()))
+
+        print(f'{self.__class__.__name__}([{chain}])')
