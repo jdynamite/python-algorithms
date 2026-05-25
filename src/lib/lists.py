@@ -2,26 +2,11 @@ from __future__ import annotations
 from typing import (
     Generic,
     Protocol,
-    TypeVar,
-    runtime_checkable,
 )
-from collections.abc import Hashable, Generator
+from collections.abc import Generator
 from dataclasses import dataclass, field
-
 from typing_extensions import override
-
-
-class Sortable(Protocol):
-    def __lt__(self, other: 'Sortable') -> bool:
-        ...
-
-
-@runtime_checkable
-class SortableHashable(Sortable, Hashable):
-    pass
-
-
-T = TypeVar('T', bound=SortableHashable)
+from .generic import T
 
 
 class ListADT(Protocol[T]):
@@ -63,7 +48,7 @@ class LinkedNode(Generic[T]):
 
     @override
     def __hash__(self) -> int:
-        return hash((self.data, self.next))
+        return hash(self.data)
 
 
 @dataclass

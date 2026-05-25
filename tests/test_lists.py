@@ -11,13 +11,13 @@ def test_linked_list():
     assert ll.as_list() == [14, 2]
     assert ll.head.data == 14
     assert ll.tail.data == 2
-    
+
     ll.append(20)
     assert ll.as_list() == [14, 2, 20]
 
     ll.prepend(31)
     assert ll.as_list() == [31, 14, 2, 20]
-    
+
     _ = ll.insert_after(2, 16)
     assert ll.as_list() == [31, 14, 2, 16, 20]
 
